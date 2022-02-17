@@ -1,4 +1,4 @@
-# AWS Chalice Workshop
+# AWS Chalice Workshop, Lambda Functions, ToDo app, DynomoDB, JWT Auth, CI/CD Pipeline
 
 https://chalice-workshop.readthedocs.io/en/latest/index.html
 
