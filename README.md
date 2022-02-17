@@ -917,9 +917,15 @@ Add a route for creating a Todo.
 5. In the `add_new_todo()` function `return` the ID of the Todo that was
    added in the database.
 
-.. literalinclude:: ../../../../code/todo-app/part1/02-add-chalicelib/app.py
-:linenos:
-:lines: 69-75
+```java
+@app.route('/todos', methods=['POST'])
+def add_new_todo():
+    body = app.current_request.json_body
+    return get_app_db().add_item(
+        description=body['description'],
+        metadata=body.get('metadata'),
+    )
+```
 
 ### Verification
 
@@ -974,9 +980,9 @@ Add a route for getting a specific Todo.
 3. In the `get_todo()` function `return` the specific Todo item from the
    database using the `uid` function parameter.
 
-.. literalinclude:: ../../../../code/todo-app/part1/02-add-chalicelib/app.py
-:linenos:
-:lines: 78-80
+@app.route('/todos/{uid}', methods=['GET'])
+def get_todo(uid):
+return get_app_db().get_item(uid)
 
 ### Verification
 
@@ -1029,13 +1035,13 @@ Add a route for deleting a specific Todo.
 3. In the `delete_todo()` function delete the Todo from the database using
    the `uid` function parameter.
 
-.. literalinclude:: ../../../../code/todo-app/part1/02-add-chalicelib/app.py
-:linenos:
-:lines: 83-85
+```java
+@app.route('/todos/{uid}', methods=['DELETE'])
+def delete_todo(uid):
+    return get_app_db().delete_item(uid)
+```
 
 ### Verification
-
-````
 
 To verify that the new route works, run `chalice local` and in a separate
 terminal window run the following using `httpie`::
@@ -1049,7 +1055,7 @@ Date: Thu, 19 Oct 2017 23:44:24 GMT
 Server: BaseHTTP/0.3 Python/2.7.10
 
 8cc673f0-7dd3-4e9d-a20b-245fcd34859d
-````
+```
 
 Now check that it is now listed when you retrieve all Todos::
 
@@ -1115,9 +1121,16 @@ Add a route for updating the state of a specific Todo.
    the Todo (which includes its description, metadata, and state) in the
    database for the `uid` provided.
 
-.. literalinclude:: ../../../../code/todo-app/part1/02-add-chalicelib/app.py
-:linenos:
-:lines: 88-95
+```java
+@app.route('/todos/{uid}', methods=['PUT'])
+def update_todo(uid):
+    body = app.current_request.json_body
+    get_app_db().update_item(
+        uid,
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'))
+```
 
 ### Verification
 
@@ -1190,9 +1203,103 @@ Server: BaseHTTP/0.3 Python/2.7.10
 
 When you are done your final code should look like this:
 
-.. literalinclude:: ../../../../code/todo-app/part1/02-add-chalicelib/app.py
-:linenos:
-:lines: 1-95
+```java
+from uuid import uuid4
+
+from chalice import Chalice
+
+
+app = Chalice(app_name='mytodo')
+app.debug = True
+_DB = None
+DEFAULT_USERNAME = 'default'
+
+
+class InMemoryTodoDB(object):
+    def __init__(self, state=None):
+        if state is None:
+            state = {}
+        self._state = state
+
+    def list_all_items(self):
+        all_items = []
+        for username in self._state:
+            all_items.extend(self.list_items(username))
+        return all_items
+
+    def list_items(self, username=DEFAULT_USERNAME):
+        return self._state.get(username, {}).values()
+
+    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
+        if username not in self._state:
+            self._state[username] = {}
+        uid = str(uuid4())
+        self._state[username][uid] = {
+            'uid': uid,
+            'description': description,
+            'state': 'unstarted',
+            'metadata': metadata if metadata is not None else {},
+            'username': username
+        }
+        return uid
+
+    def get_item(self, uid, username=DEFAULT_USERNAME):
+        return self._state[username][uid]
+
+    def delete_item(self, uid, username=DEFAULT_USERNAME):
+        del self._state[username][uid]
+
+    def update_item(self, uid, description=None, state=None,
+                    metadata=None, username=DEFAULT_USERNAME):
+        item = self._state[username][uid]
+        if description is not None:
+            item['description'] = description
+        if state is not None:
+            item['state'] = state
+        if metadata is not None:
+            item['metadata'] = metadata
+
+
+def get_app_db():
+    global _DB
+    if _DB is None:
+        _DB = InMemoryTodoDB()
+    return _DB
+
+
+@app.route('/todos', methods=['GET'])
+def get_todos():
+    return get_app_db().list_items()
+
+
+@app.route('/todos', methods=['POST'])
+def add_new_todo():
+    body = app.current_request.json_body
+    return get_app_db().add_item(
+        description=body['description'],
+        metadata=body.get('metadata'),
+    )
+
+
+@app.route('/todos/{uid}', methods=['GET'])
+def get_todo(uid):
+    return get_app_db().get_item(uid)
+
+
+@app.route('/todos/{uid}', methods=['DELETE'])
+def delete_todo(uid):
+    return get_app_db().delete_item(uid)
+
+
+@app.route('/todos/{uid}', methods=['PUT'])
+def update_todo(uid):
+    body = app.current_request.json_body
+    get_app_db().update_item(
+        uid,
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'))
+```
 
 # Section 2: Add `chalicelib` to Todo application
 
@@ -1236,14 +1343,14 @@ The directory structure of your application should now look like this::
 ```java
 $ tree .
 .
-â”œâ”€â”€ app.py
-â”œâ”€â”€ chalicelib
-â”‚Â Â â”œâ”€â”€ **init**.py
-â”‚Â Â â””â”€â”€ db.py
-â””â”€â”€ requirements.txt
-```
+├── app.py
+├── chalicelib
+│   ├── __init__.py
+│   └── db.py
+└── requirements.txt
 
 1 directory, 4 files
+```
 
 ## Move database code from `app.py` to the `db.py`
 
@@ -1377,63 +1484,108 @@ Server: BaseHTTP/0.3 Python/2.7.13
 
 When you are finished your `app.py` file should look like:
 
-.. literalinclude:: ../../../../code/todo-app/part1/03-add-dynamodb/app.py
-:linenos:
-:lines: 1-47
+```java
+from chalice import Chalice
+from chalicelib import db
+
+app = Chalice(app_name='mytodo')
+app.debug = True
+_DB = None
+
+
+def get_app_db():
+    global _DB
+    if _DB is None:
+        _DB = db.InMemoryTodoDB()
+    return _DB
+
+
+@app.route('/todos', methods=['GET'])
+def get_todos():
+    return get_app_db().list_items()
+
+
+@app.route('/todos', methods=['POST'])
+def add_new_todo():
+    body = app.current_request.json_body
+    return get_app_db().add_item(
+        description=body['description'],
+        metadata=body.get('metadata'),
+    )
+
+
+@app.route('/todos/{uid}', methods=['GET'])
+def get_todo(uid):
+    return get_app_db().get_item(uid)
+
+
+@app.route('/todos/{uid}', methods=['DELETE'])
+def delete_todo(uid):
+    return get_app_db().delete_item(uid)
+
+
+@app.route('/todos/{uid}', methods=['PUT'])
+def update_todo(uid):
+    body = app.current_request.json_body
+    get_app_db().update_item(
+        uid,
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'))
+```
 
 And your `chalicelib/db.py` file should look like:
 
 ```python
-
-    from uuid import uuid4
-
-
-    DEFAULT_USERNAME = 'default'
+from uuid import uuid4
 
 
-    class InMemoryTodoDB(object):
-        def __init__(self, state=None):
-            if state is None:
-                state = {}
-            self._state = state
+DEFAULT_USERNAME = 'default'
 
-        def list_all_items(self):
-            all_items = []
-            for username in self._state:
-                all_items.extend(self.list_items(username))
-            return all_items
 
-        def list_items(self, username=DEFAULT_USERNAME):
-            return self._state.get(username, {}).values()
+class InMemoryTodoDB(object):
+    def __init__(self, state=None):
+        if state is None:
+            state = {}
+        self._state = state
 
-        def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
-            if username not in self._state:
-                self._state[username] = {}
-            uid = str(uuid4())
-            self._state[username][uid] = {
-                'uid': uid,
-                'description': description,
-                'state': 'unstarted',
-                'metadata': metadata if metadata is not None else {},
-                'username': username
-            }
-            return uid
+    def list_all_items(self):
+        all_items = []
+        for username in self._state:
+            all_items.extend(self.list_items(username))
+        return all_items
 
-        def get_item(self, uid, username=DEFAULT_USERNAME):
-            return self._state[username][uid]
+    def list_items(self, username=DEFAULT_USERNAME):
+        return self._state.get(username, {}).values()
 
-        def delete_item(self, uid, username=DEFAULT_USERNAME):
-            del self._state[username][uid]
+    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
+        if username not in self._state:
+            self._state[username] = {}
+        uid = str(uuid4())
+        self._state[username][uid] = {
+            'uid': uid,
+            'description': description,
+            'state': 'unstarted',
+            'metadata': metadata if metadata is not None else {},
+            'username': username
+        }
+        return uid
 
-        def update_item(self, uid, description=None, state=None,
-                        metadata=None, username=DEFAULT_USERNAME):
-            item = self._state[username][uid]
-            if description is not None:
-                item['description'] = description
-            if state is not None:
-                item['state'] = state
-            if metadata is not None:
-                item['metadata'] = metadata
+    def get_item(self, uid, username=DEFAULT_USERNAME):
+        return self._state[username][uid]
+
+    def delete_item(self, uid, username=DEFAULT_USERNAME):
+        del self._state[username][uid]
+
+    def update_item(self, uid, description=None, state=None,
+                    metadata=None, username=DEFAULT_USERNAME):
+        item = self._state[username][uid]
+        if description is not None:
+            item['description'] = description
+        if state is not None:
+            item['state'] = state
+        if metadata is not None:
+            item['metadata'] = metadata
 ```
 
 # Section 3: Add a DynamoDB table for Todo application
@@ -1507,19 +1659,18 @@ $ cat .chalice/config.json
     lines to the top of the file::
 
 ```java
-        import os
-        import boto3
+import os
+import boto3
 ```
 
 7.  Add a new test route:
 
 ```java
-
-      @app.route('/test-ddb')
-      def test_ddb():
-          resource = boto3.resource('dynamodb')
-          table = resource.Table(os.environ['APP_TABLE_NAME'])
-          return table.name
+@app.route('/test-ddb')
+def test_ddb():
+    resource = boto3.resource('dynamodb')
+    table = resource.Table(os.environ['APP_TABLE_NAME'])
+    return table.name
 ```
 
 ### Verification
@@ -1528,13 +1679,13 @@ $ cat .chalice/config.json
 2. Make a request to this test route and verify you get a 200 response::
 
 ```java
-   $ http localhost:8000/test-ddb
-   HTTP/1.1 200 OK
-   Content-Length: 45
-   Content-Type: application/json
-   Server: BaseHTTP/0.3 Python/2.7.14
+$ http localhost:8000/test-ddb
+HTTP/1.1 200 OK
+Content-Length: 45
+Content-Type: application/json
+Server: BaseHTTP/0.3 Python/2.7.14
 
-   todo-app-0b116e7b-f0f8-4548-91d8-95c75898b8b6
+todo-app-0b116e7b-f0f8-4548-91d8-95c75898b8b6
 ```
 
 ## Switching the `InMemoryTodoDB` to a `DynamoDBTodo`
@@ -1557,21 +1708,20 @@ class.
     this function to use the `DynamoDBTodo` backend:
 
 ```java
-
-         def get_app_db():
-             global _DB
-             if _DB is None:
-                 _DB = db.DynamoDBTodo(
-                     boto3.resource('dynamodb').Table(
-                         os.environ['APP_TABLE_NAME'])
-                 )
-             return _DB
+def get_app_db():
+    global _DB
+    if _DB is None:
+        _DB = db.DynamoDBTodo(
+            boto3.resource('dynamodb').Table(
+                os.environ['APP_TABLE_NAME'])
+        )
+    return _DB
 ```
 
 3.  Go to the top of the `app.py` file. Modify the line `from chalicelib.db import InMemoryTodoDB` to reference `db` instead:
 
 ```java
-        from chalicelib import db
+from chalicelib import db
 ```
 
 ### Verification
@@ -1629,32 +1779,32 @@ $ chalice deploy
 1. First create a Todo item using the API Gateway endpoint::
 
 ```java
-   $ chalice url
-   https://your-chalice-url/
-   $ echo '{"description": "My second Todo", "metadata": {}}' | \
-    http POST https://your-chalice-url/todos
-   HTTP/1.1 200 OK
-   Content-Length: 36
-   Content-Type: application/json
+$ chalice url
+https://your-chalice-url/
+$ echo '{"description": "My second Todo", "metadata": {}}' | \
+http POST https://your-chalice-url/todos
+HTTP/1.1 200 OK
+Content-Length: 36
+Content-Type: application/json
 
-   abcdefg-abcdefg
+abcdefg-abcdefg
 ````
 
 2. Verify you can retrieve this item::
 
 ```java
-   $ http https://your-chalice-url/todos/abcdefg-abcdefg
-   HTTP/1.1 200 OK
-   Content-Length: 140
-   Content-Type: application/json
+$ http https://your-chalice-url/todos/abcdefg-abcdefg
+HTTP/1.1 200 OK
+Content-Length: 140
+Content-Type: application/json
 
-   {
-   "description": "My second Todo",
-   "metadata": {},
-   "state": "unstarted",
-   "uid": "abcdefg-abcdefg",
-   "username": "default"
-   }
+{
+"description": "My second Todo",
+"metadata": {},
+"state": "unstarted",
+"uid": "abcdefg-abcdefg",
+"username": "default"
+}
 ```
 
 # Section 4: Add authorization to Todo application
@@ -1729,14 +1879,14 @@ structure should be the following::
 ```java
 $ tree
 .
-â”œâ”€â”€ app.py
-â”œâ”€â”€ chalicelib
-â”‚Â Â â”œâ”€â”€ **init**.py
-â”‚Â Â â”œâ”€â”€ auth.py
-â”‚Â Â â””â”€â”€ db.py
-â”œâ”€â”€ createtable.py
-â”œâ”€â”€ requirements.txt
-â””â”€â”€ users.py
+├── app.py
+├── chalicelib
+│   ├── __init__.py
+│   ├── auth.py
+│   └── db.py
+├── createtable.py
+├── requirements.txt
+└── users.py
 ```
 
 ## Create a DynamoDB user table
@@ -1849,9 +1999,14 @@ for loading it.
 2. Create a function for fetching our current database table for users. Similar to the
    function that gets the app table. Add this function to your `app.py` file:
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 31-36
+```java
+def get_users_db():
+    global _USER_DB
+    if _USER_DB is None:
+        _USER_DB = boto3.resource('dynamodb').Table(
+            os.environ['USERS_TABLE_NAME'])
+    return _USER_DB
+```
 
 ## Create a login route
 
@@ -1865,9 +2020,16 @@ JWT token.
    function in the `auth` code you copied in earlier which will trade those for a
    JWT token.
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 14-21
+```java
+@app.route('/login', methods=['POST'])
+def login():
+    body = app.current_request.json_body
+    record = get_users_db().get_item(
+        Key={'username': body['username']})['Item']
+    jwt_token = auth.get_jwt_token(
+        body['username'], body['password'], record)
+    return {'token': jwt_token}
+```
 
 2. Notice the above code snippit uses the `auth` file that we copied into our
    chalicelib directory at the beginning of this step. Add the following
@@ -1914,18 +2076,23 @@ attaching it to one of our routes.
 
 2. Once we have defined the authorizer, we will attach it to the `get_todos` route.
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 24-28
+```java
+@app.authorizer()
+def jwt_auth(auth_request):
+    token = auth_request.token
+    decoded = auth.decode_jwt_token(token)
+    return AuthResponse(routes=['*'], principal_id=decoded['sub'])
+```
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 56-57
+```java
+@app.route('/todos', methods=['GET'], authorizer=jwt_auth)
+def get_todos():
+```
 
 Also make sure to import the `AuthResponse` class at the top of the `app.py` file:
 
 ```java
-    from chalice import AuthResponse
+from chalice import AuthResponse
 ```
 
 ### Verification
@@ -1985,21 +2152,25 @@ Now attach the authorizer to all the other routes except the `login` route.
 
 4. Attach the `jwt_auth` authorizer to the `update_todo` route.
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 62-63
+```java
+@app.route('/todos', methods=['POST'], authorizer=jwt_auth)
+def add_new_todo():
+```
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 73-74
+```java
+@app.route('/todos/{uid}', methods=['GET'], authorizer=jwt_auth)
+def get_todo(uid):
+```
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 79-80
+```java
+@app.route('/todos/{uid}', methods=['DELETE'], authorizer=jwt_auth)
+def delete_todo(uid):
+```
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 85-86
+```java
+@app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
+def update_todo(uid):
+```
 
 ### Verification
 
@@ -2140,17 +2311,55 @@ instead of relying on the default user of `default`.
    to convert the information we have in our `current_request` into a
    username.
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 52-53
+```java
+def get_authorized_username(current_request):
+    return current_request.context['authorizer']['principalId']
+```
 
 2. Now we need to update each function that interacts with our database to
    calculate the `username` and pass it to the `xxx_item` method.
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 56-94
-:emphasize-lines: 3,4,10,12,20,21,26,27,33,39
+```java
+@app.route('/todos', methods=['GET'], authorizer=jwt_auth)
+def get_todos():
+    username = get_authorized_username(app.current_request)
+    return get_app_db().list_items(username=username)
+
+
+@app.route('/todos', methods=['POST'], authorizer=jwt_auth)
+def add_new_todo():
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+    return get_app_db().add_item(
+        username=username,
+        description=body['description'],
+        metadata=body.get('metadata'),
+    )
+
+
+@app.route('/todos/{uid}', methods=['GET'], authorizer=jwt_auth)
+def get_todo(uid):
+    username = get_authorized_username(app.current_request)
+    return get_app_db().get_item(uid, username=username)
+
+
+@app.route('/todos/{uid}', methods=['DELETE'], authorizer=jwt_auth)
+def delete_todo(uid):
+    username = get_authorized_username(app.current_request)
+    return get_app_db().delete_item(uid, username=username)
+
+
+@app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
+def update_todo(uid):
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+    get_app_db().update_item(
+        uid,
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'),
+        username=username)
+```
 
 ### Verification
 
@@ -2272,6 +2481,99 @@ x-amzn-RequestId: 155f88f7-b93f-11e7-b351-775deacbeb7a
 
 When you are finished your `app.py` file should look like:
 
-.. literalinclude:: ../../../../code/todo-app/final/app.py
-:linenos:
-:lines: 1-94
+```java
+import os
+
+import boto3
+from chalice import Chalice, AuthResponse
+from chalicelib import auth, db
+
+
+app = Chalice(app_name='mytodo')
+app.debug = True
+_DB = None
+_USER_DB = None
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    body = app.current_request.json_body
+    record = get_users_db().get_item(
+        Key={'username': body['username']})['Item']
+    jwt_token = auth.get_jwt_token(
+        body['username'], body['password'], record)
+    return {'token': jwt_token}
+
+
+@app.authorizer()
+def jwt_auth(auth_request):
+    token = auth_request.token
+    decoded = auth.decode_jwt_token(token)
+    return AuthResponse(routes=['*'], principal_id=decoded['sub'])
+
+
+def get_users_db():
+    global _USER_DB
+    if _USER_DB is None:
+        _USER_DB = boto3.resource('dynamodb').Table(
+            os.environ['USERS_TABLE_NAME'])
+    return _USER_DB
+
+
+# Rest API code
+
+
+def get_app_db():
+    global _DB
+    if _DB is None:
+        _DB = db.DynamoDBTodo(
+            boto3.resource('dynamodb').Table(
+                os.environ['APP_TABLE_NAME'])
+        )
+    return _DB
+
+
+def get_authorized_username(current_request):
+    return current_request.context['authorizer']['principalId']
+
+
+@app.route('/todos', methods=['GET'], authorizer=jwt_auth)
+def get_todos():
+    username = get_authorized_username(app.current_request)
+    return get_app_db().list_items(username=username)
+
+
+@app.route('/todos', methods=['POST'], authorizer=jwt_auth)
+def add_new_todo():
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+    return get_app_db().add_item(
+        username=username,
+        description=body['description'],
+        metadata=body.get('metadata'),
+    )
+
+
+@app.route('/todos/{uid}', methods=['GET'], authorizer=jwt_auth)
+def get_todo(uid):
+    username = get_authorized_username(app.current_request)
+    return get_app_db().get_item(uid, username=username)
+
+
+@app.route('/todos/{uid}', methods=['DELETE'], authorizer=jwt_auth)
+def delete_todo(uid):
+    username = get_authorized_username(app.current_request)
+    return get_app_db().delete_item(uid, username=username)
+
+
+@app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
+def update_todo(uid):
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+    get_app_db().update_item(
+        uid,
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'),
+        username=username)
+```
