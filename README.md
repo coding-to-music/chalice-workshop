@@ -188,7 +188,6 @@ def hello_name(event, context):
 Your `app.py` file should now consist of the following lines::
 
 ```java
-
 from chalice import Chalice
 
 app = Chalice(app_name='workshop-intro')
@@ -202,14 +201,12 @@ def hello_world(event, context):
 def hello_name(event, context):
     name = event['name']
     return {'hello': name}
-
 ```
 
 2. Run `chalice deploy` to deploy your Chalice application with the
    new Lambda function::
 
 ```java
-
 $ chalice deploy
 Creating deployment package.
 Creating IAM role: workshop-intro-dev
@@ -217,7 +214,6 @@ Creating lambda function: workshop-intro-dev-hello_world
 Resources deployed:
   - Lambda ARN: arn:aws:lambda:us-west-2:123456789123:function:workshop-intro-dev-hello_world
   - Lambda ARN: arn:aws:lambda:us-west-2:123456789123:function:workshop-intro-dev-hello_name
-
 ```
 
 ### Verification
@@ -357,39 +353,39 @@ To start using Chalice, you will need a new virtualenv with Chalice installed.
 
 ### Instructions
 
-````
+Make sure you have Python 3 installed. See the :doc:`env-setup` page for
+Instructions on how to install Python.
 
-Make sure you have Python 3 installed.  See the :doc:`env-setup` page for
-### Instructions on how to install Python.
-
-1) Create a new virtualenv called ``chalice-env`` by running the following
+1. Create a new virtualenv called `chalice-env` by running the following
    command::
 
-$python3 -m venv chalice-env
+```java
+$ python3 -m venv chalice-env
+```
 
+2. Activate your newly created virtualenv::
 
-2) Activate your newly created virtualenv::
+$ source chalice-env/bin/activate
 
-$source chalice-env/bin/activate
+If you are using a Windows environment, you will have to run::
 
-
-   If you are using a Windows environment, you will have to run::
-
+```java
        > .\chalice-env\Scripts\activate
+```
 
+3. Install `chalice` using `pip`::
 
-3) Install ``chalice`` using ``pip``::
-
-$pip install chalice
-
+```java
+$ pip install chalice
+```
 
 ### Verification
 
 To check that `chalice` was installed, run::
 
 ```java
-$ chalice --version
-````
+$  chalice --version
+```
 
 This should print out the version of `chalice` that is installed in your
 virtualenv.
@@ -398,7 +394,7 @@ Also, ensure that Python 3.7 is being used as the Python interpreter for your
 virtualenv::
 
 ```java
-$ python --version
+$  python --version
 Python 3.7.3
 ```
 
@@ -434,13 +430,11 @@ let's deploy it.
 
 ### Instructions
 
-````
-
-1) Change directories to your newly created ``workshop-intro`` directory::
+1. Change directories to your newly created `workshop-intro` directory::
 
 ```java
 $ cd workshop-intro
-````
+```
 
 2. Run `chalice deploy` to deploy your Chalice application::
 
@@ -540,7 +534,7 @@ code  app.py
 3.  Deploy the updated application using `chalice deploy`::
 
 ```java
-$chalice deploy
+$ chalice deploy
 Creating deployment package.
 Updating policy for IAM role: workshop-intro-dev
 Updating lambda function: workshop-intro-dev
@@ -616,7 +610,7 @@ Next, let's add a new route that accepts a parameter in the URI.
 2.  Deploy the updated application using `chalice deploy`::
 
 ```java
-$chalice deploy
+$ chalice deploy
 Creating deployment package.
 Updating policy for IAM role: workshop-intro-dev
 Updating lambda function: workshop-intro-dev
@@ -696,7 +690,7 @@ other than `GET`.
 2.  Deploy the updated application using `chalice deploy`::
 
 ```java
-$chalice deploy
+$ chalice deploy
 Creating deployment package.
 Updating policy for IAM role: workshop-intro-dev
 Updating lambda function: workshop-intro-dev
@@ -743,7 +737,7 @@ clean up this introduction application by deleting it remotely.
     application::
 
 ```java
-$chalice delete
+$ chalice delete
 Deleting Rest API: 1y2mueb824
 Deleting function: arn:aws:lambda:us-west-2:12345:function:workshop-intro-dev
 Deleting IAM role: workshop-intro-dev
@@ -754,8 +748,6 @@ Deleting IAM role: workshop-intro-dev
 
 ### Verification
 
-````
-
 To ensure that the API no longer exists remotely, try to make an HTTP request
 to the endpoint it was originally deployed to::
 
@@ -765,7 +757,7 @@ $ http https://1y2mueb824.execute-api.us-west-2.amazonaws.com/api/
     http: error: SSLError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert
     handshake failure (_ssl.c:590) while doing GET request to URL:
     https://1y2mueb824.execute-api.us-west-2.amazonaws.com/api/
-````
+```
 
 This should result in an SSL error as the remote application no longer exists
 and therefore it cannot be connected to it.
@@ -858,13 +850,11 @@ Copy a boilerplate `app.py` file to begin working on the Todo application
 
 ### Instructions
 
-````
-
 1. If you have not already done so, clone the repository for this workshop::
 
 ```java
    $ git clone https://github.com/aws-samples/chalice-workshop.git
-````
+```
 
 2. Copy the over the `app.py` file to the `mytodo` Chalice application::
 
@@ -990,8 +980,6 @@ Add a route for getting a specific Todo.
 
 ### Verification
 
-````
-
 To verify that the new route works, run `chalice local` and in a separate
 terminal window run the following using `httpie`::
 
@@ -1004,7 +992,7 @@ Date: Thu, 19 Oct 2017 23:44:24 GMT
 Server: BaseHTTP/0.3 Python/2.7.10
 
 8cc673f0-7dd3-4e9d-a20b-245fcd34859d
-````
+```
 
 Now use the returned ID `8cc673f0-7dd3-4e9d-a20b-245fcd34859d` to request
 the specific Todo::
@@ -1133,8 +1121,6 @@ Add a route for updating the state of a specific Todo.
 
 ### Verification
 
-````
-
 To verify that the new route works, run `chalice local` and in a separate
 terminal window run the following using `httpie`::
 
@@ -1147,7 +1133,7 @@ Date: Thu, 19 Oct 2017 23:44:24 GMT
 Server: BaseHTTP/0.3 Python/2.7.10
 
 de9a4981-f7fd-4639-97fb-2af247f20d79
-````
+```
 
 Now determine the state of this newly added Todo::
 
@@ -1687,18 +1673,16 @@ to our `requirements.txt` file.
 
 ### Instructions
 
-````
-
 1. Add `PyJWT` to your `requirements.txt` file::
 
 ```java
-$echo PyJWT==1.6.1 >> requirements.txt
-````
+$ echo PyJWT==1.6.1 >> requirements.txt
+```
 
 2. Make sure it is now installed in your virtualenv::
 
 ```java
-$pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ### Verification
@@ -1727,14 +1711,14 @@ managing a user table.
    file::
 
 ```java
-$cp ../chalice-workshop/code/todo-app/part1/04-add-auth/chalicelib/auth.py chalicelib/auth.py
+$ cp ../chalice-workshop/code/todo-app/part1/04-add-auth/chalicelib/auth.py chalicelib/auth.py
 ```
 
 2. Copy over the `chalice-workshop/code/todo-app/part1/04-add-auth/users.py` script for
    creating users::
 
 ```java
-$cp ../chalice-workshop/code/todo-app/part1/04-add-auth/users.py users.py
+$ cp ../chalice-workshop/code/todo-app/part1/04-add-auth/users.py users.py
 ```
 
 ### Verification
@@ -1762,13 +1746,11 @@ for storing users to use in the Chalice application.
 
 ### Instructions
 
-````
-
 1. Run the `createtable.py` script to create the DynamoDB table::
 
 ```java
 $ python createtable.py -t users
-````
+```
 
 ### Verification
 
@@ -1809,8 +1791,6 @@ use with your chalice application.
 
 ### Instructions
 
-````
-
 1. Run the `users.py` script with the `-c` argument to create a user. You
    will be prompted for a username and a password::
 
@@ -1818,7 +1798,7 @@ use with your chalice application.
 $ python users.py -c
 Username: user
 Password:
-````
+```
 
 ### Verification
 
@@ -1856,10 +1836,7 @@ for loading it.
 
 ### Instructions
 
-````
-
 1. Add a new variable `_USER_DB` in your `app.py` file with a value of None:
-
 
 ```java
     app = Chalice(app_name='mytodo')
@@ -1867,7 +1844,7 @@ for loading it.
     _DB = None
     # This is the new value you're adding.
     _USER_DB = None
-````
+```
 
 2. Create a function for fetching our current database table for users. Similar to the
    function that gets the app table. Add this function to your `app.py` file:
@@ -1882,8 +1859,6 @@ We will now create a login route where users can trade their username/password f
 JWT token.
 
 ### Instructions
-
-````
 
 1. Define a new Chalice route `/login` that accepts the POST method and grabs the
    `username` and `password` from the request, and forwards it along to a helper
@@ -1900,7 +1875,7 @@ JWT token.
 
 ```java
    from chalicelib import auth
-````
+```
 
 ### Verification
 
