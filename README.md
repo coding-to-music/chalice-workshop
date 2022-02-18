@@ -581,30 +581,30 @@ Next, let's add a new route that accepts a parameter in the URI.
     existing `hello_workshop()` function::
 
 ```java
-         @app.route('/hello/{name}')
-         def hello_name(name):
-             return {'hello': name}
+@app.route('/hello/{name}')
+def hello_name(name):
+    return {'hello': name}
 ```
 
     Your `app.py` should now consist of the following::
 
 ```java
-         from chalice import Chalice
+from chalice import Chalice
 
-         app = Chalice(app_name='workshop-intro')
+app = Chalice(app_name='workshop-intro')
 
 
-         @app.route('/')
-         def index():
-             return {'hello': 'world'}
+@app.route('/')
+def index():
+    return {'hello': 'world'}
 
-         @app.route('/hello')
-         def hello_workshop():
-             return {'hello': 'workshop'}
+@app.route('/hello')
+def hello_workshop():
+    return {'hello': 'workshop'}
 
-         @app.route('/hello/{name}')
-         def hello_name(name):
-             return {'hello': name}
+@app.route('/hello/{name}')
+def hello_name(name):
+    return {'hello': name}
 ```
 
 2.  Deploy the updated application using `chalice deploy`::
@@ -655,36 +655,36 @@ other than `GET`.
     existing `hello_name()` function::
 
 ```java
-         @app.route('/hello-post', methods=['POST'])
-         def hello_post():
-             request_body = app.current_request.json_body
-             return {'hello': request_body}
+@app.route('/hello-post', methods=['POST'])
+def hello_post():
+    request_body = app.current_request.json_body
+    return {'hello': request_body}
 ```
 
     Your `app.py` should now consist of the following::
 
 ```java
-         from chalice import Chalice
+from chalice import Chalice
 
-         app = Chalice(app_name='workshop-intro')
+app = Chalice(app_name='workshop-intro')
 
 
-         @app.route('/')
-         def index():
-             return {'hello': 'world'}
+@app.route('/')
+def index():
+    return {'hello': 'world'}
 
-         @app.route('/hello')
-         def hello_workshop():
-             return {'hello': 'workshop'}
+@app.route('/hello')
+def hello_workshop():
+    return {'hello': 'workshop'}
 
-         @app.route('/hello/{name}')
-         def hello_name(name):
-             return {'hello': name}
+@app.route('/hello/{name}')
+def hello_name(name):
+    return {'hello': name}
 
-         @app.route('/hello-post', methods=['POST'])
-         def hello_post():
-             request_body = app.current_request.json_body
-             return {'hello': request_body}
+@app.route('/hello-post', methods=['POST'])
+def hello_post():
+    request_body = app.current_request.json_body
+    return {'hello': request_body}
 ```
 
 2.  Deploy the updated application using `chalice deploy`::
