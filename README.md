@@ -829,7 +829,7 @@ Create the new Chalice project for the Todo application.
     command::
 
 ```java
-$chalice new-project mytodo
+$ chalice new-project mytodo
 ```
 
 ### Verification
@@ -853,13 +853,13 @@ Copy a boilerplate `app.py` file to begin working on the Todo application
 1. If you have not already done so, clone the repository for this workshop::
 
 ```java
-   $ git clone https://github.com/aws-samples/chalice-workshop.git
+$ git clone https://github.com/aws-samples/chalice-workshop.git
 ```
 
 2. Copy the over the `app.py` file to the `mytodo` Chalice application::
 
 ```java
-   $ cp ../chalice-workshop/code/todo-app/part1/01-new-project/app.py mytodo/app.py
+$ cp ../chalice-workshop/code/todo-app/part1/01-new-project/app.py mytodo/app.py
 ```
 
 ### Verification
@@ -980,9 +980,11 @@ Add a route for getting a specific Todo.
 3. In the `get_todo()` function `return` the specific Todo item from the
    database using the `uid` function parameter.
 
+```java
 @app.route('/todos/{uid}', methods=['GET'])
 def get_todo(uid):
 return get_app_db().get_item(uid)
+```
 
 ### Verification
 
