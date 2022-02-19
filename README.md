@@ -1329,7 +1329,7 @@ Let's start this process by moving our database code out of `app.py` and into
    file::
 
 ```java
-   $ touch chalicelib/**init**.py
+   $ touch chalicelib/__init__.py
 ```
 
 3. Create a `db.py` file where all database interaction code will live::
