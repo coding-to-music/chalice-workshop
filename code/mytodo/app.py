@@ -1,17 +1,27 @@
 from chalice import Chalice
 from chalicelib import db
+import os
+import boto3
 
 app = Chalice(app_name='mytodo')
 app.debug = True
 _DB = None
 
 
+# def get_app_db():
+#     global _DB
+#     if _DB is None:
+#         _DB = db.InMemoryTodoDB()
+#     return _DB
+
 def get_app_db():
     global _DB
     if _DB is None:
-        _DB = db.InMemoryTodoDB()
+        _DB = db.DynamoDBTodo(
+            boto3.resource('dynamodb').Table(
+                os.environ['APP_TABLE_NAME'])
+        )
     return _DB
-
 
 @app.route('/todos', methods=['GET'])
 def get_todos():
@@ -45,3 +55,9 @@ def update_todo(uid):
         description=body.get('description'),
         state=body.get('state'),
         metadata=body.get('metadata'))
+
+@app.route('/test-ddb')
+def test_ddb():
+    resource = boto3.resource('dynamodb')
+    table = resource.Table(os.environ['APP_TABLE_NAME'])
+    return table.name
