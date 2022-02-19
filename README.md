@@ -1601,12 +1601,14 @@ The starting code for this step is in the `chalice-workshop/code/todo-app/part1/
 file. If necessary, you can copy over those files as a starting point
 for this step::
 
+Note: run from the mytodo directory
+
 ```java
-$ cp ../chalice-workshop/code/todo-app/part1/03-add-dynamodb/app.py app.py
-$ cp ../chalice-workshop/code/todo-app/part1/03-add-dynamodb/createtable.py createtable.py
-$ cp ../chalice-workshop/code/todo-app/part1/03-add-dynamodb/chalicelib/db.py chalicelib/db.py
-$ cp ../chalice-workshop/code/todo-app/part1/03-add-dynamodb/.chalice/policy-dev.json .chalice/policy-dev.json
-$ cp ../chalice-workshop/code/todo-app/part1/03-add-dynamodb/.chalice/config.json .chalice/config.json
+cp ../../../chalice-workshop/code/todo-app/part1/03-add-dynamodb/app.py app.py
+cp ../../../chalice-workshop/code/todo-app/part1/03-add-dynamodb/createtable.py createtable.py
+cp ../../../chalice-workshop/code/todo-app/part1/03-add-dynamodb/chalicelib/db.py chalicelib/db.py
+cp ../../../chalice-workshop/code/todo-app/part1/03-add-dynamodb/.chalice/policy-dev.json .chalice/policy-dev.json
+cp ../../../chalice-workshop/code/todo-app/part1/03-add-dynamodb/.chalice/config.json .chalice/config.json
 ```
 
 ## Create a DynamoDB table
@@ -1639,6 +1641,8 @@ $ python createtable.py --table-type app
 
 5. Verify that this script added the table name to the `.chalice/config.json`
    file. You should see a key named `APP_TABLE_NAME` in this file::
+
+I needed to put empty quotes "" as a value for the APP_TABLE_NAME key.
 
 ```java
 $ cat .chalice/config.json

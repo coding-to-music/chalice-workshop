@@ -1,19 +1,15 @@
 from chalice import Chalice
-# from chalicelib import db
-from chalicelib.db import InMemoryTodoDB
+from chalicelib import db
 
 app = Chalice(app_name='mytodo')
 app.debug = True
 _DB = None
-DEFAULT_USERNAME = 'default'
-
-
 
 
 def get_app_db():
     global _DB
     if _DB is None:
-        _DB = InMemoryTodoDB()
+        _DB = db.InMemoryTodoDB()
     return _DB
 
 
@@ -21,9 +17,6 @@ def get_app_db():
 def get_todos():
     return get_app_db().list_items()
 
-
-# Following the example get_todos() function, add the rest of the required
-# routes here...
 
 @app.route('/todos', methods=['POST'])
 def add_new_todo():
@@ -33,13 +26,16 @@ def add_new_todo():
         metadata=body.get('metadata'),
     )
 
+
 @app.route('/todos/{uid}', methods=['GET'])
 def get_todo(uid):
     return get_app_db().get_item(uid)
 
+
 @app.route('/todos/{uid}', methods=['DELETE'])
 def delete_todo(uid):
     return get_app_db().delete_item(uid)
+
 
 @app.route('/todos/{uid}', methods=['PUT'])
 def update_todo(uid):
